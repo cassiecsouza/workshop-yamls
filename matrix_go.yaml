@@ -1,0 +1,71 @@
+pipeline:
+  name: Matrix Demo - Go
+  identifier: Matrix_Demo_Go
+  projectIdentifier: <input_project_name>
+  orgIdentifier: <input_org_name>
+  description: |-
+    This pipeline demonstrates usage of Matrix feature and GitHubActions in Harness.
+    Repo to clone: nofarb/goHelloWorldServer
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.Public_Github
+        repoName: nofarb/goHelloWorldServer
+        build: <+input>
+  stages:
+    - stage:
+        identifier: Build
+        name: Build Go App
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Action
+                  name: Setup Go Version
+                  identifier: Setup_Go_Version
+                  spec:
+                    uses: actions/setup-go@v3
+                    with:
+                      go-version: <+matrix.goVersion>
+              - step:
+                  failureStrategies: []
+                  identifier: Run_Unit_Tests
+                  name: Run Unit Tests
+                  spec:
+                    shell: Bash
+                    command: |-
+                      set +e
+                      go get gotest.tools/gotestsum
+                      gotestsum --format=standard-verbose --junitfile unit-tests.xml
+                    reports:
+                      type: JUnit
+                      spec:
+                        paths:
+                          - "*.xml"
+                  type: Run
+                  when:
+                    stageStatus: Success
+              - step:
+                  identifier: Go_Build
+                  name: Go Build
+                  spec:
+                    shell: Bash
+                    command: |-
+                      set +e
+                      go get gotest.tools/gotestsum
+                      CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -tags netgo
+                  type: Run
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+        strategy:
+          matrix:
+            goVersion:
+              - 1.18
+              - 1.17
+        type: CI
+  tags: {}
