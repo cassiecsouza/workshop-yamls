@@ -1,8 +1,8 @@
 pipeline:
   name: Welcome Message
   identifier: Welcome_Message
-  projectIdentifier: workshop
-  orgIdentifier: Cassie_Souza
+  projectIdentifier: <input_project_name>
+  orgIdentifier: <input_org_name>
   stages:
     - stage:
         name: First Stage
