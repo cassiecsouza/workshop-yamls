@@ -1,0 +1,52 @@
+pipeline:
+  name: Test Split
+  identifier: Test_Split
+  projectIdentifier: <input_project_name>
+  orgIdentifier: <input_org_name>
+  tags: {}
+  stages:
+    - stage:
+        name: test split
+        identifier: test_split
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Setup Pytest
+                  identifier: Setup_Pytest
+                  spec:
+                    shell: Sh
+                    command: |-
+                      python -m pip install --upgrade pip
+                      pip install pytest werkzeug==1.0.0
+                      pip install -r requirements.txt
+              - step:
+                  type: Run
+                  name: Run Pytests
+                  identifier: Run_1
+                  spec:
+                    shell: Sh
+                    command: |-
+                      # Make sure environment variables are set.
+                      export HARNESS_NODE_INDEX=<+strategy.iteration>
+                      export HARNESS_NODE_TOTAL=<+strategy.iterations>
+
+                      TESTS=`split_tests --glob "**/test_*.py" --split-by file_timing`
+                      pytest -v --junitxml="result_$${HARNESS_NODE_INDEX}.xml" $TESTS
+                  strategy:
+                    parallelism: 3
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.Public_Github
+        repoName: hemanthmantri/testing-flask-with-pytest
+        build: <+input>
