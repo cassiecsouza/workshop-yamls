@@ -1,0 +1,40 @@
+pipeline:
+  name: Hardware Information
+  identifier: Hardware_Information
+  projectIdentifier: <input_project_name>
+  orgIdentifier: <input_org_name>
+  tags: {}
+  stages:
+    - stage:
+        name: First Stage
+        description: Fix the 'Hardware info' step
+        identifier: first_stage
+        type: CI
+        spec:
+          cloneCodebase: false
+          execution:
+            steps:
+              - parallel:
+                  - step:
+                      identifier: hardware_info_docker
+                      name: Hardware info - Docker
+                      spec:
+                        command: lshw -short
+                        connectorRef: account.Anonymous_Dockerhub
+                        description: Fix this step so the 'lshw' command runs successfully
+                        image: alpine:3
+                        shell: Sh
+                      type: Run
+                  - step:
+                      identifier: hardware_info_host
+                      name: Hardware info - Host
+                      spec:
+                        shell: Bash
+                        command: lshw -short
+                      type: Run
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
